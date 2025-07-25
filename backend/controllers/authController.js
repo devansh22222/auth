@@ -67,7 +67,7 @@ const login = async (req,res)=>{
         const isMatch = await bcrypt.compare(password, user.password)
 
         if(!isMatch){
-            return res.json({success : false, message: "Wrong password"});
+            return res.status(400).json({success : false, message: "Wrong password"});
         }
 
 
@@ -108,5 +108,8 @@ const logout = async (req,res)=>{
         return res.json({success : false, message: error.message})
     }
 }
+
+
+
 
 module.exports = {register, login, logout}
