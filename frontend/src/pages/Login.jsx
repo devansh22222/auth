@@ -1,5 +1,10 @@
+import { useContext } from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AppContent } from "../component/context/AppContext";
+import axios from "axios"
+import { toast } from "react-toastify";
+import "../index.css"
 
 export default function Login(){
 
@@ -12,6 +17,8 @@ export default function Login(){
 
     const navigate = useNavigate()
 
+    const {backendURL,setIsLoggedIn,getUserData} = useContext(AppContent)
+
     const handleChange = (event) =>{
         
 
@@ -23,8 +30,48 @@ export default function Login(){
         })
     }
 
-    const handleSubmit = (event) =>{
-        event.preventDefault();
+    const handleSubmit = async (event) =>{
+
+        try {
+            event.preventDefault();
+
+            // This will send cookies
+            axios.defaults.withCredentials = true;
+            if(state  === "Sign Up"){
+
+                const {data} = await axios.post(backendURL + "/api/auth/register", userData);
+
+                if(data.success){
+                    setIsLoggedIn(true);
+                    getUserData();
+                    navigate("/");
+                }else{
+                    toast.error(data.message)
+                }
+
+            }else{
+
+                 const {data} = await axios.post(backendURL + "/api/auth/login", userData);
+
+                if(data.success){
+                    setIsLoggedIn(true);
+                    getUserData();
+                    navigate("/");
+                    toast.success("Welcome")
+                }else{
+                   toast.error(error.response?.data?.message || error.message || "Something went wrong")
+                }
+
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message || "Something went wrong";
+            toast.error(msg);
+        }
+
+
+
+
+        
         setUserData({
         name: "",
         email: "",
@@ -34,41 +81,48 @@ export default function Login(){
 
     
     return(
-        <div>
-            <h1>Login</h1>
-            <br />
-            <h2>{state === "Sign Up" ? "Create Account" : "Login" }</h2>
-            <p>{state === "Sign Up" ? "Create Your Account" : "Login to you account"}</p>
+        <div className="auth">
+            <div className="auth-container">
+                <br />
+                <h2 style={{textAlign:"center"}}>{state === "Sign Up" ? "Create Account" : "Login" }</h2>
 
-            <form >
-                {state === "Sign Up" && (
+                <form onSubmit={handleSubmit}>
+                    {state === "Sign Up" && (
+                        <div>
+                            <label htmlFor="fullName">Full Name:</label>
+                            <input type="text" placeholder="Full Name" id="fullName" name="name" value={userData.name} onChange={handleChange} required />
+                        </div>
+                    )}
+                    
+                    <br />
                     <div>
-                        <input type="text" placeholder="Full Name" name="name" value={userData.name} onChange={handleChange} required />
+                        <label htmlFor="email">Email:</label>
+                        <input type="email" placeholder="Email" id="email" name = "email" value={userData.email} onChange={handleChange} required  />
                     </div>
-                )}
-                
-                <div>
-                    <input type="email" placeholder="Email" name = "email" value={userData.email} onChange={handleChange} required  />
-                </div>
-                <div>
-                    <input type="password" placeholder="Password" name="password" value={userData.password} onChange={handleChange} required />
-                </div>
-                <br />
-                <button>{state}</button>
-                <br />
-                {state === "Sign Up" ? (
-                    <p>Already have a account? {' '}
-                        <span onClick={()=>setState("Sign In")}><a>Login</a></span>
-                    </p>
-                ) : (
-                    <p>Don't have an account? {' '}
-                        <span onClick={()=>setState("Sign Up")}><a>Sign Up</a></span>
-                    </p>
-                )}
-                
-                
-            </form>
-
+                    <br />
+                    <div>
+                        <label htmlFor="password">Password:</label>
+                        <input type="password" placeholder="Password" id = "password"  name="password" value={userData.password} onChange={handleChange} required />
+                    </div>
+                    <br />
+                    <button style={{marginLeft: "7rem"}}>{state}</button>
+                    <br />
+                    <br />
+                    {state === "Sign Up" ? (
+                        <div className="auth-footer">
+                            <p>Already have a account? {' '}</p>
+                            <span onClick={()=>setState("Sign In")}><a>Login</a></span>
+                        </div>
+                    ) : (
+                        <div className="auth-footer">
+                            <p>Don't have an account? {' '}</p>
+                            <span onClick={()=>setState("Sign Up")}><a>Sign Up</a></span>
+                        </div>
+                    )}
+                    
+                    
+                </form>
+            </div>
         </div>
     )
 }
